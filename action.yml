@@ -2,6 +2,12 @@ name: ""
 description: "Build Docker image, deploy to a server, and send a Discord notification."
 author: "devopsprabin"
 inputs:
+  github_token:
+    description: "GitHub Token"
+    required: true
+  github_repository:
+    description: "GitHub Repository"
+    required: true
   github_actor:
     description: "GitHub actor performing the action"
     required: true
@@ -35,6 +41,8 @@ inputs:
     required: false
     default: "dev"
 
+  
+
 runs:
   using: "composite"
   steps:
@@ -45,8 +53,8 @@ runs:
       uses: docker/login-action@v3.3.0
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ inputs.github_actor }}
+        password: ${{ inputs.github_token }}
 
     - name: Build and Push to GitHub Container Registry
       uses: docker/build-push-action@v6
@@ -54,13 +62,11 @@ runs:
         context: ./
         build-args: |
           "_ENV=production"
-          "GIT_TOKEN=${{ secrets.GITHUB_TOKEN }}"
-        tags: ghcr.io/${{ github.repository }}:${{ inputs.custom_tag_name }}
+          "GIT_TOKEN=${{ inputs.github_token }}"
+        tags: ghcr.io/${{ imputs.github_repository }}:${{ inputs.custom_tag_name }}
         push: true 
-
     - name: Decode Base64 SSH Private Key
       id: decode_ssh_key
-      shell: bash
       run: |
         echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
         chmod 600 decoded_ssh_key
