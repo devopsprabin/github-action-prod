@@ -67,6 +67,7 @@ runs:
         push: true 
     - name: Decode Base64 SSH Private Key
       id: decode_ssh_key
+      shell: bash
       run: |
         decoded_key=$(echo "${{ inputs.ssh_private_key }}" | base64 -d)
         echo "DECODED_SSH_KEY<<EOF" >> $GITHUB_ENV
