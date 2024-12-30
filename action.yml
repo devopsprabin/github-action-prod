@@ -69,19 +69,9 @@ runs:
       id: decode_ssh_key
       shell: bash
       run: |
-        decoded_key=$(echo "${{ inputs.ssh_private_key }}" | base64 -d)
-        echo "DECODED_SSH_KEY<<EOF" >> $GITHUB_ENV
-        echo "$decoded_key" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
-        
-    - name: Deploy command
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ inputs.ssh_host }}
-        username: ${{ inputs.ssh_user }}
-        key: ${{ env.DECODED_SSH_KEY }}
-        port: ${{ inputs.ssh_port }}
-        script: |
+        echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
+        chmod 600 decoded_ssh_key
+        ssh -i decoded_ssh_key -o StrictHostKeyChecking=no ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} << 'EOF'
           whoami
           repo_name=$(echo "${{ github.event.repository.name }}" | tr -d '_-')
           cd ${{ inputs.deploy_folder_path_dev }}
@@ -89,7 +79,7 @@ runs:
           sh ${{ inputs.deploy_command }} $repo_name
           echo "Deploy Command: ${{ inputs.deploy_command }}"
           echo "Deploy Folder: ${{ inputs.deploy_folder_path_dev }}"
-
+        EOF
     - name: Notification
       uses: appleboy/discord-action@master
       with:
