@@ -69,11 +69,7 @@ runs:
       shell: bash
       id: decode_ssh_key
       run: |
-        if [ -z "${{ inputs.ssh_private_key }}" ]; then
-          echo "Error: ssh_private_key is not set"
-          exit 1
-        fi
-        echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
+        echo "DECODED_SSH_KEY=$(echo "${{ inputs.ssh_private_key }}" | base64 -d)" >> $GITHUB_ENV
         chmod 600 decoded_ssh_key
 
     - name: Deploy command
@@ -81,7 +77,7 @@ runs:
       with:
         host: ${{ inputs.ssh_host }}
         username: ${{ inputs.ssh_user }}
-        key: ${{ steps.decode_ssh_key.outputs.decoded_ssh_key }}
+        key: ${{ env.DECODED_SSH_KEY }}
         port: ${{ inputs.ssh_port }}
         script: |
           whoami
