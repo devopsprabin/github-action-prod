@@ -69,6 +69,10 @@ runs:
       shell: bash
       id: decode_ssh_key
       run: |
+        if [ -z "${{ inputs.ssh_private_key }}" ]; then
+          echo "Error: ssh_private_key is not set"
+          exit 1
+        fi
         echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
         chmod 600 decoded_ssh_key
 
