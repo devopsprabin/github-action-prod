@@ -1,0 +1,95 @@
+name: ""
+description: "Build Docker image, deploy to a server, and send a Discord notification."
+author: "devopsprabin"
+inputs:
+  github_actor:
+    description: "GitHub actor performing the action"
+    required: true
+  ssh_host:
+    description: "Primary SSH Host"
+    required: true
+  ssh_user:
+    description: "SSH User"
+    required: true
+  ssh_private_key:
+    description: "Private SSH Key"
+    required: true
+  ssh_port:
+    description: "SSH Port"
+    required: false
+    default: "22"
+  deploy_folder_path_dev:
+    description: "Deployment folder path"
+    required: true
+  deploy_command:
+    description: "Deployment command"
+    required: true
+  discord_webhook_id:
+    description: "Discord Webhook ID"
+    required: true
+  discord_webhook_token:
+    description: "Discord Webhook Token"
+    required: true
+  custom_tag_name:
+    description: "Tag for the Docker image"
+    required: false
+    default: "dev"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4.2.2
+
+    - name: Login to Github Packages
+      uses: docker/login-action@v3.3.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and Push to GitHub Container Registry
+      uses: docker/build-push-action@v6
+      with:
+        context: ./
+        build-args: |
+          "_ENV=production"
+          "GIT_TOKEN=${{ secrets.GITHUB_TOKEN }}"
+        tags: ghcr.io/${{ github.repository }}:${{ inputs.custom_tag_name }}
+        push: true 
+
+    - name: Decode Base64 SSH Private Key
+      id: decode_ssh_key
+      shell: bash
+      run: |
+        echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
+        chmod 600 decoded_ssh_key
+
+    - name: Deploy command
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ steps.decode_ssh_key.outputs.decoded_ssh_key }}
+        port: ${{ inputs.ssh_port }}
+        script: |
+          whoami
+          repo_name=$(echo "${{ github.event.repository.name }}" | tr -d '_-')
+          cd ${{ inputs.deploy_folder_path_dev }}
+          ls -al
+          sh ${{ inputs.deploy_command }} $repo_name
+          echo "Deploy Command: ${{ inputs.deploy_command }}"
+          echo "Deploy Folder: ${{ inputs.deploy_folder_path_dev }}"
+
+    - name: Notification
+      uses: appleboy/discord-action@master
+      with:
+        webhook_id: ${{ inputs.discord_webhook_id }}
+        webhook_token: ${{ inputs.discord_webhook_token }}
+        username: devopsprabin
+        avatar_url: https://avatars.githubusercontent.com/u/112921260
+        args: |
+          Successfully Deployed: ${{ github.event.repository.name }}
+          Deployment URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Commit: ${{ github.event.head_commit.message }}
+          Branch: ${{ github.ref_name }}
