@@ -71,9 +71,7 @@ runs:
       run: |
         echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
         chmod 600 decoded_ssh_key
-        ssh -i decoded_ssh_key -o StrictHostKeyChecking=no ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} << 'EOF'
-          whoami
-          repo_name=$(echo "${{ github.event.repository.name }}" | tr -d '_-')
+        ssh -o StrictHostKeyChecking=no -i decoded_ssh_key -p ${{ inputs.ssh_port }} ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} <<EOF
           cd ${{ inputs.deploy_folder_path_dev }}
           ls -al
           sh ${{ inputs.deploy_command }} $repo_name
