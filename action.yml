@@ -69,7 +69,8 @@ runs:
       shell: bash
       id: decode_ssh_key
       run: |
-        echo "DECODED_SSH_KEY=$(echo "${{ inputs.ssh_private_key }}" | base64 -d)" >> $GITHUB_ENV
+        echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
+        echo "DECODED_SSH_KEY=$(cat decoded_ssh_key)" >> $GITHUB_ENV
         
     - name: Deploy command
       uses: appleboy/ssh-action@v1.0.3
