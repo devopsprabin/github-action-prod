@@ -66,6 +66,7 @@ runs:
         tags: ghcr.io/${{ inputs.github_repository }}:${{ inputs.custom_tag_name }}
         push: true 
     - name: Decode Base64 SSH Private Key
+      shell: bash
       id: decode_ssh_key
       run: |
         echo "${{ inputs.ssh_private_key }}" | base64 -d > decoded_ssh_key
