@@ -58,7 +58,7 @@ runs:
         build-args: |
           "_ENV=production"
           "GIT_TOKEN=${{ inputs.github_token }}"
-        tags: ghcr.io/${{ github.event.repository.name }}:${{ inputs.custom_tag_name }}
+        tags: ghcr.io/${{ github.repository }}:${{ inputs.custom_tag_name }}
         push: true 
     - name: Decode Base64 SSH Private Key
       id: decode_ssh_key
