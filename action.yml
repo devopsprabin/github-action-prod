@@ -95,7 +95,7 @@ runs:
       with:
         webhook_id: ${{ inputs.discord_webhook_id }}
         webhook_token: ${{ inputs.discord_webhook_token }}
-        username: ${{ github.event.actor }}
+        username: ${{ github.event.commits.author.username }}
         avatar_url: ${{ github.event.actor.avatar_url }}
         args: |
           Successfully Deployed: ${{ github.event.repository.name }}
