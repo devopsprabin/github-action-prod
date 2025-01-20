@@ -1,12 +1,12 @@
 name: "Production Github Action"
-description: "Build Docker image, deploy to a server, and send a Discord notification."
+description: "Build a Docker image, deploy to a server, and send a Discord notification."
 author: "devopsprabin"
 inputs:
   github_token:
     description: "GitHub Token"
     required: true
   github_actor:
-    description: "GitHub actor performing the action"
+    description: "GitHub actor user"
     required: true
   ssh_host:
     description: "Primary SSH Host"
@@ -58,7 +58,9 @@ runs:
         build-args: |
           "_ENV=production"
           "GIT_TOKEN=${{ inputs.github_token }}"
-        tags: ghcr.io/${{ github.repository }}:${{ inputs.custom_tag_name }}
+        tags: |
+            ghcr.io/${{ github.repository }}:${{ inputs.custom_tag_name }}
+            ghcr.io/${{ github.repository }}:latest
         push: true 
     - name: Decode Base64 SSH Private Key
       id: decode_ssh_key
