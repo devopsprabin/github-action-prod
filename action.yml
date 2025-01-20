@@ -1,4 +1,4 @@
-name: "github Action"
+name: "Production Github Action"
 description: "Build Docker image, deploy to a server, and send a Discord notification."
 author: "devopsprabin"
 inputs:
