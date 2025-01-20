@@ -21,7 +21,7 @@ inputs:
     description: "SSH Port"
     required: false
     default: "22"
-  deploy_folder_path_dev:
+  deploy_folder_path:
     description: "Deployment folder path"
     required: true
   deploy_command:
@@ -36,14 +36,14 @@ inputs:
   custom_tag_name:
     description: "Tag for the Docker image"
     required: false
-    default: "dev"
+    default: "latest"
 
 runs:
   using: "composite"
   steps:
     - name: Checkout code
       uses: actions/checkout@v4.2.2
-
+      
     - name: Login to Github Packages
       uses: docker/login-action@v3.3.0
       with:
@@ -79,11 +79,10 @@ runs:
         script: |
           whoami
           repo_name=$(echo "${{ github.event.repository.name }}" | tr -d '_-')
-          cd ${{ inputs.deploy_folder_path_dev }}
-          ls -al
+          cd ${{ inputs.deploy_folder_path }}
           sh ${{ inputs.deploy_command }} $repo_name
           echo "Deploy Command: ${{ inputs.deploy_command }}"
-          echo "Deploy Folder: ${{ inputs.deploy_folder_path_dev }}"
+          echo "Deploy Folder: ${{ inputs.deploy_folder_path }}"
           
     - name: Notification
       uses: appleboy/discord-action@master
